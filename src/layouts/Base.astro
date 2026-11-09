@@ -1,0 +1,64 @@
+---
+import '../styles/global.css';
+import { LANGS, LANG_NAMES, LANG_TAGS, profile, ui, type Lang } from '../data/site';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+}
+
+const { lang, title, description } = Astro.props;
+const others = LANGS.filter((l) => l !== lang);
+const canonical = new URL(`/${lang}/`, Astro.site);
+---
+
+<!doctype html>
+<html lang={LANG_TAGS[lang]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {LANGS.map((l) => <link rel="alternate" hreflang={LANG_TAGS[l]} href={new URL(`/${l}/`, Astro.site)} />)}
+    <link rel="alternate" type="application/rss+xml" title={title} href="/rss.xml" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={profile.avatar} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="generator" content={Astro.generator} />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href={`/${lang}/`}>{profile.name[lang]}</a>
+        <nav class="nav">
+          <a href="#projects">{ui.projects[lang]}</a>
+          <a href="#publications">{ui.publications[lang]}</a>
+          <a href="#experience">{ui.experience[lang]}</a>
+        </nav>
+        <div class="lang-switch">
+          {
+            others.map((l) => (
+              <a href={`/${l}/`} hreflang={LANG_TAGS[l]} lang={LANG_TAGS[l]}>
+                {LANG_NAMES[l]}
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </header>
+    <main class="wrap">
+      <slot />
+    </main>
+    <footer>
+      <div class="wrap">
+        © {new Date().getFullYear()} {profile.name[lang]} · {ui.footer[lang]} · <a href="/rss.xml">RSS</a>
+      </div>
+    </footer>
+  </body>
+</html>

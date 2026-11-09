@@ -1,0 +1,147 @@
+---
+import Base from '../../layouts/Base.astro';
+import { LANGS, news, profile, publications, timeline, ui, type Lang } from '../../data/site';
+import { getProjects } from '../../lib/github';
+
+export function getStaticPaths() {
+  return LANGS.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const projects = await getProjects();
+
+/** Stable per-repo hue for the generated cover. */
+const hue = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+const fmtDate =(iso: string) => iso.slice(0, 7).replace('-', '.');
+const bold = (s: string) =>
+  s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+---
+
+<Base lang={lang} title={profile.name[lang]} description={profile.tagline[lang]}>
+  <div class="hero">
+    <img src={profile.avatar} alt="" width="128" height="128" />
+    <div>
+      <h1>{profile.name[lang]}</h1>
+      <p class="tagline">{profile.tagline[lang]}</p>
+      <p class="affiliation">{profile.affiliation[lang]}</p>
+      <ul class="links">
+        {profile.links.map((l) => <li><a href={l.url} rel="me noopener" target="_blank">{l.label}</a></li>)}
+      </ul>
+    </div>
+  </div>
+
+  <section id="about">
+    <h2>{ui.about[lang]}</h2>
+    <p>{profile.bio[lang]}</p>
+    <p class="muted">{ui.languages[lang]}: {profile.languages[lang]}</p>
+  </section>
+
+  {
+    news.length > 0 && (
+      <section id="news">
+        <h2>{ui.news[lang]}</h2>
+        <ul class="news">
+          {news.map((n) => (
+            <li>
+              <time datetime={n.date}>{fmtDate(n.date)}</time>
+              <span>{n.url ? <a href={n.url}>{n.text[lang]}</a> : n.text[lang]}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section id="projects">
+    <h2>{ui.projects[lang]}</h2>
+    {
+      projects.length === 0 ? (
+        <p class="muted">{ui.noProjects[lang]}</p>
+      ) : (
+        <div class="projects">
+          {projects.map((p) => (
+            <article class="card">
+              <a href={p.url} target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+                {p.image ? (
+                  <img src={p.image} alt="" loading="lazy" width="1200" height="600" />
+                ) : (
+                  <div class="cover" style={`--h:${hue(p.name)}`}>
+                    <span>{p.name}</span>
+                  </div>
+                )}
+              </a>
+              <div class="body">
+                <h3>
+                  <a href={p.url} target="_blank" rel="noopener">{p.name}</a>
+                </h3>
+                <p>{p.pitch?.[lang] ?? p.description}</p>
+                {p.topics.length > 0 && (
+                  <div class="tags">
+                    {p.topics.slice(0, 5).map((t) => <span>{t}</span>)}
+                  </div>
+                )}
+                <div class="meta">
+                  {p.language && <span>{p.language}</span>}
+                  {p.stars > 0 && <span>★ {p.stars}</span>}
+                  {p.pushedAt && (
+                    <span>
+                      {ui.updated[lang]} {fmtDate(p.pushedAt)}
+                    </span>
+                  )}
+                  {p.homepage && (
+                    <a href={p.homepage} target="_blank" rel="noopener">
+                      Demo ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )
+    }
+  </section>
+
+  <section id="publications">
+    <h2>{ui.publications[lang]}</h2>
+    <ol class="pubs">
+      {
+        publications.map((p) => (
+          <li>
+            <div class="title">{p.title}</div>
+            <div class="authors" set:html={bold(p.authors)} />
+            <div class="venue">
+              {p.venue}, {p.year}
+            </div>
+            {p.links.length > 0 && (
+              <div class="plinks">
+                {p.links.map((l) => (
+                  <a href={l.url} target="_blank" rel="noopener">
+                    {l.label}
+                  </a>
+                ))}
+              </div>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section id="experience">
+    <h2>{ui.experience[lang]}</h2>
+    <ul class="timeline">
+      {
+        timeline.map((t) => (
+          <li>
+            <span class="period">{t.period}</span>
+            <div>
+              <div>{t.title[lang]}</div>
+              <div class="detail">{t.detail[lang]}</div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

@@ -1,0 +1,29 @@
+---
+// Language picker: Japanese browsers go to /ja/, Chinese to /zh/, everyone else to /en/.
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zewen Tao</title>
+    <script is:inline>
+      var langs = navigator.languages || [navigator.language || ''];
+      var target = '/en/';
+      for (var i = 0; i < langs.length; i++) {
+        if (/^ja\b/i.test(langs[i])) { target = '/ja/'; break; }
+        if (/^zh\b/i.test(langs[i])) { target = '/zh/'; break; }
+        if (/^en\b/i.test(langs[i])) { break; }
+      }
+      location.replace(target);
+    </script>
+    <meta http-equiv="refresh" content="1; url=/en/" />
+    <link rel="alternate" hreflang="ja" href="/ja/" />
+    <link rel="alternate" hreflang="en" href="/en/" />
+    <link rel="alternate" hreflang="zh-CN" href="/zh/" />
+  </head>
+  <body>
+    <p><a href="/ja/">日本語</a> · <a href="/en/">English</a> · <a href="/zh/">中文</a></p>
+  </body>
+</html>
