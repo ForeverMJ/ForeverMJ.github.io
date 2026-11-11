@@ -1,0 +1,63 @@
+---
+import { render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import { profile, ui } from '../../../data/site';
+import { fmtDay, getPosts, postSlug, postUrl, translations, type Post } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { lang: post.data.lang, slug: postSlug(post) }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const { lang, title, description, date, tags } = post.data;
+const { Content, headings } = await render(post);
+const toc = headings.filter((h) => h.depth === 2);
+const alternates = await translations(postSlug(post));
+---
+
+<Base
+  lang={lang}
+  title={`${title} · ${profile.name[lang]}`}
+  description={description}
+  path={postUrl(post)}
+  alternates={alternates}
+  ogType="article"
+>
+  <article class="post">
+    <header class="post-header">
+      <p class="post-meta">
+        <a href={`/${lang}/posts/`}>{ui.posts[lang]}</a>
+        <span>·</span>
+        <time datetime={date.toISOString()}>{fmtDay(date)}</time>
+      </p>
+      <h1>{title}</h1>
+      {
+        tags.length > 0 && (
+          <div class="tags">
+            {tags.map((t) => (
+              <span>{t}</span>
+            ))}
+          </div>
+        )
+      }
+    </header>
+    {
+      toc.length > 2 && (
+        <nav class="toc" aria-label={ui.contents[lang]}>
+          <p>{ui.contents[lang]}</p>
+          <ol>
+            {toc.map((h) => (
+              <li>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</Base>

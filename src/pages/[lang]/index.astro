@@ -1,7 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { LANGS, news, profile, publications, timeline, ui, type Lang } from '../../data/site';
+import { LANGS, LANG_NAMES, news, newsUrl, profile, publications, timeline, ui, type Lang } from '../../data/site';
 import { getProjects } from '../../lib/github';
+import { fmtDay, getPosts, postUrl } from '../../lib/posts';
 
 export function getStaticPaths() {
   return LANGS.map((lang) => ({ params: { lang } }));
@@ -9,6 +10,9 @@ export function getStaticPaths() {
 
 const lang = Astro.params.lang as Lang;
 const projects = await getProjects();
+// Posts in this language; if there are none yet, show every language's posts instead.
+const ownPosts = await getPosts(lang);
+const posts = (ownPosts.length > 0 ? ownPosts : await getPosts()).slice(0, 5);
 
 /** Stable per-repo hue for the generated cover. */
 const hue = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
@@ -44,10 +48,31 @@ const bold = (s: string) =>
           {news.map((n) => (
             <li>
               <time datetime={n.date}>{fmtDate(n.date)}</time>
-              <span>{n.url ? <a href={n.url}>{n.text[lang]}</a> : n.text[lang]}</span>
+              <span>{newsUrl(n, lang) ? <a href={newsUrl(n, lang)}>{n.text[lang]}</a> : n.text[lang]}</span>
             </li>
           ))}
         </ul>
+      </section>
+    )
+  }
+
+  {
+    posts.length > 0 && (
+      <section id="posts">
+        <h2>{ui.posts[lang]}</h2>
+        <ul class="post-list">
+          {posts.map((p) => (
+            <li>
+              <a href={postUrl(p)} hreflang={p.data.lang}>{p.data.title}</a>
+              <div class="post-meta">
+                <time datetime={p.data.date.toISOString()}>{fmtDay(p.data.date)}</time>
+                {p.data.lang !== lang && <span class="post-lang">{LANG_NAMES[p.data.lang]}</span>}
+              </div>
+              <p>{p.data.description}</p>
+            </li>
+          ))}
+        </ul>
+        <p class="more"><a href={`/${lang}/posts/`}>{ui.allPosts[lang]} →</a></p>
       </section>
     )
   }

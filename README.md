@@ -10,8 +10,10 @@
 | 给项目写日英介绍、排到前面 | 编辑 `src/data/site.ts` 里的 `featured` |
 | 项目封面用截图 | 图片放到 `public/covers/`，在 `featured` 里写 `image: '/covers/xxx.png'` |
 | 发新闻 / 论文 / 改经历 | 编辑 `src/data/site.ts` 里的 `news` / `publications` / `timeline` |
+| 发文章 | 新建 `src/content/posts/<语言>/<slug>.md`（`ja` / `en` / `zh`），同一篇文章的各语言版本用同一个文件名，会自动互相链接 |
 
-所有内容都集中在 `src/data/site.ts`，每段文字都有 `ja` / `en` / `zh` 三个版本。
+除文章外，所有内容都集中在 `src/data/site.ts`，每段文字都有 `ja` / `en` / `zh` 三个版本。
+文章的 frontmatter 写 `title`、`description`、`date`、`lang`、`tags`（可选）、`draft`（可选，`true` 时不发布）；不要写 `slug`。
 star 数、语言、更新时间是构建时从 GitHub API 拉的，Actions 每天 06:00 JST 重新构建一次。
 
 ## 本地预览

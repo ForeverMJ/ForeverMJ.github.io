@@ -6,11 +6,17 @@ interface Props {
   lang: Lang;
   title: string;
   description: string;
+  /** Path of this page; defaults to the language's home page. */
+  path?: string;
+  /** Other language versions of this page. Defaults to every language's home page. */
+  alternates?: Partial<Record<Lang, string>>;
+  ogType?: 'website' | 'article';
 }
 
-const { lang, title, description } = Astro.props;
-const others = LANGS.filter((l) => l !== lang);
-const canonical = new URL(`/${lang}/`, Astro.site);
+const { lang, title, description, path = `/${lang}/`, ogType = 'website' } = Astro.props;
+const alternates = Astro.props.alternates ?? Object.fromEntries(LANGS.map((l) => [l, `/${l}/`]));
+const others = LANGS.filter((l) => l !== lang && alternates[l]);
+const canonical = new URL(path, Astro.site);
 ---
 
 <!doctype html>
@@ -21,10 +27,10 @@ const canonical = new URL(`/${lang}/`, Astro.site);
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {LANGS.map((l) => <link rel="alternate" hreflang={LANG_TAGS[l]} href={new URL(`/${l}/`, Astro.site)} />)}
-    <link rel="alternate" type="application/rss+xml" title={title} href="/rss.xml" />
+    {LANGS.filter((l) => alternates[l]).map((l) => <link rel="alternate" hreflang={LANG_TAGS[l]} href={new URL(alternates[l]!, Astro.site)} />)}
+    <link rel="alternate" type="application/rss+xml" title={profile.name.en} href="/rss.xml" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -37,14 +43,15 @@ const canonical = new URL(`/${lang}/`, Astro.site);
       <div class="wrap">
         <a class="brand" href={`/${lang}/`}>{profile.name[lang]}</a>
         <nav class="nav">
-          <a href="#projects">{ui.projects[lang]}</a>
-          <a href="#publications">{ui.publications[lang]}</a>
-          <a href="#experience">{ui.experience[lang]}</a>
+          <a href={`/${lang}/posts/`}>{ui.posts[lang]}</a>
+          <a href={`/${lang}/#projects`}>{ui.projects[lang]}</a>
+          <a href={`/${lang}/#publications`}>{ui.publications[lang]}</a>
+          <a href={`/${lang}/#experience`}>{ui.experience[lang]}</a>
         </nav>
         <div class="lang-switch">
           {
             others.map((l) => (
-              <a href={`/${l}/`} hreflang={LANG_TAGS[l]} lang={LANG_TAGS[l]}>
+              <a href={alternates[l]} hreflang={LANG_TAGS[l]} lang={LANG_TAGS[l]}>
                 {LANG_NAMES[l]}
               </a>
             ))

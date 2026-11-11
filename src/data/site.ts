@@ -54,7 +54,20 @@ export const profile = {
 // News (newest first). Also published as the RSS feed at /rss.xml.
 // `date` is 'YYYY-MM' or 'YYYY-MM-DD'.
 // ---------------------------------------------------------------------------
-export const news: { date: string; text: T; url?: string }[] = [
+export const news: { date: string; text: T; url?: string | Partial<T> }[] = [
+  {
+    date: '2026-11-11',
+    text: {
+      ja: 'EMNLP 2026 の参加報告を記事として公開しました。',
+      en: 'Published my EMNLP 2026 report as a post (Japanese and Chinese).',
+      zh: '把 EMNLP 2026 的参会报告整理成文章发布了。',
+    },
+    url: {
+      ja: '/ja/posts/emnlp-2026-insights/',
+      en: '/ja/posts/emnlp-2026-insights/',
+      zh: '/zh/posts/emnlp-2026-insights/',
+    },
+  },
   {
     date: '2026-10',
     text: {
@@ -72,6 +85,9 @@ export const news: { date: string; text: T; url?: string }[] = [
     },
   },
 ];
+
+/** A news item's link for one language (a plain string is shared by all languages). */
+export const newsUrl = (n: (typeof news)[number], lang: Lang) => (typeof n.url === 'string' ? n.url : n.url?.[lang]);
 
 // ---------------------------------------------------------------------------
 // Publications
@@ -170,6 +186,14 @@ export const timeline: { period: string; title: T; detail: T }[] = [
 export const ui = {
   about: { ja: 'About', en: 'About', zh: '关于' },
   news: { ja: 'News', en: 'News', zh: '动态' },
+  posts: { ja: '記事', en: 'Posts', zh: '文章' },
+  allPosts: { ja: '記事一覧', en: 'All posts', zh: '全部文章' },
+  noPostsInLang: {
+    ja: 'まだ記事がありません。',
+    en: 'No posts in English yet. Posts in other languages:',
+    zh: '暂无文章。',
+  },
+  contents: { ja: '目次', en: 'Contents', zh: '目录' },
   projects: { ja: 'Projects', en: 'Projects', zh: '项目' },
   publications: { ja: 'Publications', en: 'Publications', zh: '论文' },
   experience: { ja: '経歴', en: 'Experience', zh: '经历' },
